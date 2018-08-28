@@ -84,8 +84,10 @@ func main() {
 	app.Action = func(c *cli.Context) error {
 		client := auth0.NewClient(c.String(FlagAuth0Domain))
 
-		fmt.Println(client)
-		routes := controllers.NewRootController().Routes()
+		rootController := controllers.NewRootController(c.String(FlagAuth0Domain), c.String(FlagAuth0ClientID))
+		tokenController := controllers.NewTokenController(client)
+
+		routes := append(rootController.Routes(), tokenController.Routes()...)
 		app := fireball.NewApp(routes)
 		http.Handle("/", app)
 

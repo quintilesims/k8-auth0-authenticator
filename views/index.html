@@ -1,20 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  {{ template "head" . }}
-</head>
-<body>
+  <head>
+    {{ template "head" }}
+    <script>
+      var options = {
+        auth: {
+          responseMode: "form_post",
+          redirectUrl: window.location.href + "token", 
+          responseType: "token",
+          params: {
+            scope: "openid profile email",
+          }
+        }
+      };
 
-{{ template "nav" . }}
+      var lock = new Auth0Lock("{{ .Auth0ClientID }}", "{{ .Auth0Domain }}", options);
+    </script>
+  </head>
+  <body>
+    {{ template "nav" }}
 
-<div class="jumbotron">
-  <div class="container text-center">
-    <h1>My Portfolio</h1>      
-    <p>Some text that represents "Me"...</p>
-  </div>
-</div>
-  
-{{ template "footer" . }}
-</body>
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container text-center">
+        <h1>Kubernetes Auth0 Authenticator</h1>
+        <p>Click the button below to generate a new token for your Kubeconfig file</p>
+        <button type="button" class="btn btn-primary btn-lg" onclick="lock.show();">Get Token</button>
+      </div>
+    </div>
+
+    {{ template "footer" }}
+  </body>
 </html>
 
