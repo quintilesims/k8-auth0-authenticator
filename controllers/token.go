@@ -24,13 +24,13 @@ func (t *TokenController) Routes() []*fireball.Route {
 		{
 			Path: "/token",
 			Handlers: fireball.Handlers{
-				"POST": t.getToken,
+				"POST": t.postToken,
 			},
 		},
 	}
 }
 
-func (t *TokenController) getToken(c *fireball.Context) (fireball.Response, error) {
+func (t *TokenController) postToken(c *fireball.Context) (fireball.Response, error) {
 	accessToken := c.Request.FormValue("access_token")
 	if accessToken == "" {
 		return nil, fmt.Errorf("Required value 'access_token' not included in form")
