@@ -9,17 +9,18 @@ import (
 
 // todo: use dependency inversion
 type TokenController struct {
-	client *auth0.Client
+	getProfile func(string) (*auth0.Profile, error)
+	client     *auth0.Client
 }
 
-func NewTokenController(client *auth0.Client) *TokenController {
+func NewTokenController(getProfile func(string) (*auth0.Profile, error)) *TokenController {
 	return &TokenController{
-		client: client,
+		getProfile: getProfile,
 	}
 }
 
 func (t *TokenController) Routes() []*fireball.Route {
-	routes := []*fireball.Route{
+	return []*fireball.Route{
 		{
 			Path: "/token",
 			Handlers: fireball.Handlers{
@@ -27,8 +28,6 @@ func (t *TokenController) Routes() []*fireball.Route {
 			},
 		},
 	}
-
-	return routes
 }
 
 func (t *TokenController) getToken(c *fireball.Context) (fireball.Response, error) {
@@ -37,7 +36,7 @@ func (t *TokenController) getToken(c *fireball.Context) (fireball.Response, erro
 		return nil, fmt.Errorf("Required value 'access_token' not included in form")
 	}
 
-	profile, err := t.client.GetProfile(accessToken)
+	profile, err := t.getProfile(accessToken)
 	if err != nil {
 		return nil, err
 	}

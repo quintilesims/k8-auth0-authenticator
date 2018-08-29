@@ -5,15 +5,12 @@
   </head>
   <body>
     {{ template "nav" }}
-
     <div class="container text-center">
       <h1>Token: <code>{{ .Token }}</code></h1>
     </div>
-
     <div class="container text-center top-buffer">
       <p>Success! Your token can now be used with this authenticator by placing it the <b>users</b> section of your Kubeconfig file.</p>
     </div>
-
     <div class="container top-buffer">
       <div class="panel panel-primary">
         <div class="panel-heading">
@@ -32,26 +29,6 @@ users:
         </div>
       </div>
     </div>
-
-
-
-
-<!--
-
-      <pre class="text-left">
-        <code>
-apiVersion: v1
-clusters:
-...
-users:
-- name: {{ .Profile.Email }}
-  user:
-    token: {{ .Token }}
-        </code>
-      </pre>
--->
-
-
     {{ template "footer" }}
   </body>
 </html>

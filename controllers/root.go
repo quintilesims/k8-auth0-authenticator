@@ -17,7 +17,7 @@ func NewRootController(auth0Domain, auth0ClientID string) *RootController {
 }
 
 func (r *RootController) Routes() []*fireball.Route {
-	routes := []*fireball.Route{
+	return []*fireball.Route{
 		{
 			Path: "/",
 			Handlers: fireball.Handlers{
@@ -25,8 +25,6 @@ func (r *RootController) Routes() []*fireball.Route {
 			},
 		},
 	}
-
-	return routes
 }
 
 func (r *RootController) index(c *fireball.Context) (fireball.Response, error) {
