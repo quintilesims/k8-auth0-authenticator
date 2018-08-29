@@ -10,7 +10,6 @@ import (
 // todo: use dependency inversion
 type TokenController struct {
 	getProfile func(string) (*auth0.Profile, error)
-	client     *auth0.Client
 }
 
 func NewTokenController(getProfile func(string) (*auth0.Profile, error)) *TokenController {
