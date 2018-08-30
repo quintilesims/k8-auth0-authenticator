@@ -7,7 +7,6 @@ import (
 	"github.com/zpatrick/fireball"
 )
 
-// todo: use dependency inversion
 type TokenController struct {
 	getProfile func(string) (*auth0.Profile, error)
 }

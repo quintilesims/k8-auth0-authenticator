@@ -19,10 +19,6 @@ Routes:
   /authenticate		-> Does K8 Authentication
   /token		-> Does Auth0 handshake
 
-Features:
-  - Caching (w/ configurable timeout)
-  - Logging
-  - Dependency Inversion
 */
 
 const (
@@ -82,10 +78,18 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
+		routes := []*fireball.Route{}
 		client := auth0.NewClient(c.String(FlagAuth0Domain))
+
+		authenticateController := controllers.NewAuthenticateController(client.GetProfile)
+		routes = append(routes, authenticateController.Routes()...)
+
 		rootController := controllers.NewRootController(c.String(FlagAuth0Domain), c.String(FlagAuth0ClientID))
+		routes = append(routes, rootController.Routes()...)
+
 		tokenController := controllers.NewTokenController(client.GetProfile)
-		routes := append(rootController.Routes(), tokenController.Routes()...)
+		routes = append(routes, tokenController.Routes()...)
+
 		app := fireball.NewApp(routes)
 		http.Handle("/", app)
 
