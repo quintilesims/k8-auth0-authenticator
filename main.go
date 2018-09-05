@@ -92,7 +92,7 @@ func main() {
 		http.Handle("/", app)
 
 		http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "static/favicon.ico")
+			http.ServeFile(w, r, "static/favicon.png")
 		})
 
 		addr := fmt.Sprintf("0.0.0.0:%d", c.Int(FlagPort))
