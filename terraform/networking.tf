@@ -68,3 +68,20 @@ resource "aws_security_group" "https" {
     Name = "${var.name}-https"
   }
 }
+
+data "aws_acm_certificate" "this" {
+  domain   = "${var.acm_cert_domain}"
+  statuses = ["ISSUED"]
+}
+
+data "aws_route53_zone" "top" {
+  name = "${var.domain}"
+}
+
+resource "aws_route53_record" "cname" {
+  zone_id = "${data.aws_route53_zone.top.zone_id}"
+  name    = "${var.subdomain}.${var.domain}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = ["${aws_alb.this.dns_name}"]
+}

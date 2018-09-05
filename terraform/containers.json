@@ -1,0 +1,33 @@
+[
+    {
+        "name": "k8-auth0-authenticator",
+        "image": "${docker_image}",
+        "essential": true,
+        "memory": 512,
+        "cpu": 256,
+        "environment": [
+            {
+                "name": "KAA_PORT",
+                "value": "80"
+            },
+            {
+                "name": "KAA_DEBUG",
+                "value": "true"
+            },
+            {
+                "name": "KAA_AUTH0_DOMAIN",
+                "value": "${auth0_domain}"
+            },
+            {
+                "name": "KAA_AUTH0_CLIENT_ID",
+                "value": "${auth0_client_id}"
+            }
+        ],
+        "portMappings": [
+            {
+                "hostPort": 80,
+                "containerPort": 80
+            }
+        ]
+    }
+]
