@@ -14,11 +14,9 @@ import (
 )
 
 /*
-Routes:
-  / 			-> Has link for getting a token
-  /authenticate		-> Does K8 Authentication
-  /token		-> Does Auth0 handshake
-
+TODO:
+  - Make auth0 lock configurable?
+  - Docs for setting up w/ minicube (use ngrok?)
 */
 
 const (
@@ -92,6 +90,10 @@ func main() {
 
 		app := fireball.NewApp(routes)
 		http.Handle("/", app)
+
+		http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "static/favicon.ico")
+		})
 
 		addr := fmt.Sprintf("0.0.0.0:%d", c.Int(FlagPort))
 		log.Printf("[INFO] Listening on %s\n", addr)
