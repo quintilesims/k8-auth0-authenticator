@@ -50,15 +50,19 @@ data "template_file" "container_definitions" {
   template = "${file("containers.json")}"
 
   vars {
-    docker_image    = "${var.docker_image}"
-    auth0_domain    = "${var.auth0_domain}"
-    auth0_client_id = "${auth0_client.this.client_id}"
+    docker_image      = "${var.docker_image}"
+    log_group_name    = "${aws_cloudwatch_log_group.this.name}"
+    log_stream_prefix = "${var.name}"
+    aws_region        = "${var.aws_region}"
+    auth0_domain      = "${var.auth0_domain}"
+    auth0_client_id   = "${auth0_client.this.client_id}"
   }
 }
 
 resource "aws_ecs_task_definition" "this" {
   family                   = "${var.name}"
   container_definitions    = "${data.template_file.container_definitions.rendered}"
+  execution_role_arn       = "${aws_iam_role.logger.arn}"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = 256

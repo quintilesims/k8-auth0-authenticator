@@ -38,13 +38,12 @@ func (a *AuthenticateController) authenticate(c *fireball.Context) (fireball.Res
 	var tr authentication.TokenReview
 	if err := json.NewDecoder(c.Request.Body).Decode(&tr); err != nil {
 		log.Printf("[ERROR] Failed to decode TokenReview: %v", err)
-		return tokenReview(authentication.TokenReviewStatus{Error: err.Error()})
+		return newTokenReviewResponse(authentication.TokenReviewStatus{Error: err.Error()})
 	}
 
 	profile, err := a.getProfile(tr.Spec.Token)
 	if err != nil {
-		log.Printf("[ERROR] Failed to get Auth0 profile: %v", err)
-		return tokenReview(authentication.TokenReviewStatus{Error: err.Error()})
+		return newTokenReviewResponse(authentication.TokenReviewStatus{Error: err.Error()})
 	}
 
 	status := authentication.TokenReviewStatus{
@@ -55,10 +54,10 @@ func (a *AuthenticateController) authenticate(c *fireball.Context) (fireball.Res
 		},
 	}
 
-	return tokenReview(status)
+	return newTokenReviewResponse(status)
 }
 
-func tokenReview(status authentication.TokenReviewStatus) (fireball.Response, error) {
+func newTokenReviewResponse(status authentication.TokenReviewStatus) (fireball.Response, error) {
 	statusCode := http.StatusUnauthorized
 	if status.Authenticated {
 		statusCode = http.StatusOK

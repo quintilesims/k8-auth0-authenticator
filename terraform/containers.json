@@ -5,6 +5,14 @@
         "essential": true,
         "memory": 512,
         "cpu": 256,
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "${log_group_name}",
+                "awslogs-stream-prefix": "${log_stream_prefix}-",
+                "awslogs-region": "${aws_region}"
+            }
+        },
         "environment": [
             {
                 "name": "KAA_PORT",

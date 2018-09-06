@@ -78,15 +78,27 @@ func main() {
 	app.Action = func(c *cli.Context) error {
 		routes := []*fireball.Route{}
 		client := auth0.NewClient(c.String(FlagAuth0Domain))
+		getProfile := func(token string) (*auth0.Profile, error) {
+			log.Printf("[DEBUG] Attempting to validate token '%s'", token)
+			profile, err := client.GetProfile(token)
+			if err != nil {
+				log.Printf("[ERROR] Failed to validate token '%s': %v", token, err)
+				return nil, err
+			}
 
-		authenticateController := controllers.NewAuthenticateController(client.GetProfile)
+			log.Printf("[DEBUG] Successfully validated token '%s' (owner: '%s')", token, profile.Email)
+			return profile, nil
+		}
+
+		authenticateController := controllers.NewAuthenticateController(getProfile)
 		routes = append(routes, authenticateController.Routes()...)
 
 		rootController := controllers.NewRootController(c.String(FlagAuth0Domain), c.String(FlagAuth0ClientID))
 		routes = append(routes, rootController.Routes()...)
 
-		tokenController := controllers.NewTokenController(client.GetProfile)
+		tokenController := controllers.NewTokenController(getProfile)
 		routes = append(routes, tokenController.Routes()...)
+		routes = fireball.Decorate(routes, fireball.LogDecorator())
 
 		app := fireball.NewApp(routes)
 		http.Handle("/", app)
