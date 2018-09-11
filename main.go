@@ -83,6 +83,7 @@ func main() {
 			Directory:  "templates",
 			Extensions: []string{".tmpl"},
 			Layout:     "layout",
+			DisableHTTPErrorRendering: true,
 		})
 
 		authenticateController := controllers.NewAuthenticateController(client.GetProfile)

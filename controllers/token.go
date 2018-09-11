@@ -46,6 +46,7 @@ func (tc *TokenController) HandleCallback(r *http.Request) http.Handler {
 
 		if err := tc.render.HTML(w, http.StatusOK, "token", data); err != nil {
 			log.Printf("[ERROR] Failed to render 'token' template: %v", err)
+			http.Error(w, err.Error(), 500)
 		}
 	})
 }

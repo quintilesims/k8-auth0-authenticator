@@ -6,15 +6,19 @@ type MethodHandlers map[string]http.Handler
 
 type RouteMap map[string]MethodHandlers
 
-func (r RouteMap) Glob() []RouteMatcher {
+func (r RouteMap) GlobMatch() []RouteMatcher {
 	return r.constructMatchers(NewGlobRouteMatcher)
 }
 
-func (r RouteMap) Regex() []RouteMatcher {
+func (r RouteMap) RegexMatch() []RouteMatcher {
 	return r.constructMatchers(NewRegexRouteMatcher)
 }
 
-func (r RouteMap) Variable() []RouteMatcher {
+func (r RouteMap) StringMatch() []RouteMatcher {
+	return r.constructMatchers(NewStringRouteMatcher)
+}
+
+func (r RouteMap) VariableMatch() []RouteMatcher {
 	return r.constructMatchers(NewVariableRouteMatcher)
 }
 

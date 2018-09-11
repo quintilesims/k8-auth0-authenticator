@@ -33,6 +33,7 @@ func (rc *RootController) Root(r *http.Request) http.Handler {
 
 		if err := rc.render.HTML(w, http.StatusOK, "root", data); err != nil {
 			log.Printf("[ERROR] Failed to render 'root' template: %v", err)
+			http.Error(w, err.Error(), 500)
 		}
 	})
 }

@@ -25,12 +25,27 @@ func NewGlobRouteMatcher(method, pattern string, handler http.Handler) RouteMatc
 }
 
 func NewRegexRouteMatcher(method, pattern string, handler http.Handler) RouteMatcher {
+	re := regexp.MustCompile(pattern)
 	return func(r *http.Request) (http.Handler, bool) {
 		if r.Method != method {
 			return nil, false
 		}
 
-		if !regexp.MustCompile(pattern).MatchString(r.URL.Path) {
+		if !re.MatchString(r.URL.Path) {
+			return nil, false
+		}
+
+		return handler, true
+	}
+}
+
+func NewStringRouteMatcher(method, pattern string, handler http.Handler) RouteMatcher {
+	return func(r *http.Request) (http.Handler, bool) {
+		if r.Method != method {
+			return nil, false
+		}
+
+		if r.URL.Path != pattern {
 			return nil, false
 		}
 
