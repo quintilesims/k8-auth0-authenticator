@@ -1,0 +1,24 @@
+<div class="container text-center">
+  <h1>Token: <code>{{ .Token }}</code></h1>
+</div>
+<div class="container text-center top-buffer">
+  <p>Success! Your token can now be used with this authenticator by placing it the <b>users</b> section of your Kubeconfig file.</p>
+</div>
+<div class="container top-buffer">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Sample Kubeconfig</h4>
+    </div>
+    <div class="panel-body">
+      <pre>
+apiVersion: v1
+...
+
+users:
+- name: {{ .Profile.Email }}
+  user:
+    token: {{ .Token }}
+      </pre>
+    </div>
+  </div>
+</div>

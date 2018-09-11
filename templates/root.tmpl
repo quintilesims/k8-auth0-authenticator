@@ -1,0 +1,23 @@
+<div class="jumbotron jumbotron-fluid">
+  <div class="container text-center">
+    <h1>Kubernetes Auth0 Authenticator</h1>
+    <p>Click the button below to generate a new token for your Kubeconfig file</p>
+    <button type="button" class="btn btn-primary btn-lg" onclick="lock.show();">Get Token</button>
+  </div>
+</div>
+
+<script src="https://cdn.auth0.com/js/lock/11.0.0/lock.min.js"></script>
+<script>
+  var options = {
+    auth: {
+      responseMode: "form_post",
+      redirectUrl: window.location.href + "token", 
+      responseType: "token",
+      params: {
+        scope: "openid profile email",
+      }
+    }
+  };
+
+  var lock = new Auth0Lock("{{ .Auth0ClientID }}", "{{ .Auth0Domain }}", options);
+</script>

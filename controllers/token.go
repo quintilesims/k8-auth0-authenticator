@@ -2,50 +2,50 @@ package controllers
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/quintilesims/auth0"
-	"github.com/zpatrick/fireball"
+	"github.com/unrolled/render"
+	"github.com/zpatrick/rye"
 )
 
 type TokenController struct {
+	render     *render.Render
 	getProfile func(string) (*auth0.Profile, error)
 }
 
-func NewTokenController(getProfile func(string) (*auth0.Profile, error)) *TokenController {
+func NewTokenController(r *render.Render, getProfile func(string) (*auth0.Profile, error)) *TokenController {
 	return &TokenController{
+		render:     r,
 		getProfile: getProfile,
 	}
 }
 
-func (t *TokenController) Routes() []*fireball.Route {
-	return []*fireball.Route{
-		{
-			Path: "/token",
-			Handlers: fireball.Handlers{
-				"POST": t.postToken,
-			},
-		},
-	}
-}
-
-func (t *TokenController) postToken(c *fireball.Context) (fireball.Response, error) {
-	accessToken := c.Request.FormValue("access_token")
+func (tc *TokenController) HandleCallback(r *http.Request) http.Handler {
+	accessToken := r.FormValue("access_token")
 	if accessToken == "" {
-		return nil, fmt.Errorf("Required value 'access_token' not included in form")
+		return rye.Error(400, fmt.Errorf("Required value 'access_token' not included in form"))
 	}
 
-	profile, err := t.getProfile(accessToken)
+	profile, err := tc.getProfile(accessToken)
 	if err != nil {
-		return nil, err
+		// todo: we should return 400 if the token is invalid, 500 otherwise
+		log.Printf("[ERROR] Failed to get profile for token '%s': %v", accessToken, err)
+		return rye.Error(400, err)
 	}
 
-	data := struct {
-		Token   string
-		Profile auth0.Profile
-	}{
-		Token:   accessToken,
-		Profile: *profile,
-	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data := struct {
+			Token   string
+			Profile auth0.Profile
+		}{
+			Token:   accessToken,
+			Profile: *profile,
+		}
 
-	return c.HTML(200, "token.html", data)
+		if err := tc.render.HTML(w, http.StatusOK, "token", data); err != nil {
+			log.Printf("[ERROR] Failed to render 'token' template: %v", err)
+		}
+	})
 }

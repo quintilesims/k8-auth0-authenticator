@@ -8,9 +8,11 @@ import (
 
 	"github.com/quintilesims/auth0"
 	"github.com/quintilesims/k8-auth0-authenticator/controllers"
+	"github.com/unrolled/render"
 	"github.com/urfave/cli"
-	"github.com/zpatrick/fireball"
 	"github.com/zpatrick/helpers"
+	"github.com/zpatrick/router"
+	"github.com/zpatrick/rye"
 )
 
 /*
@@ -76,32 +78,32 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
-		routes := []*fireball.Route{}
 		client := auth0.NewClient(c.String(FlagAuth0Domain))
-		getProfile := func(token string) (*auth0.Profile, error) {
-			log.Printf("[DEBUG] Attempting to validate token '%s'", token)
-			profile, err := client.GetProfile(token)
-			if err != nil {
-				log.Printf("[ERROR] Failed to validate token '%s': %v", token, err)
-				return nil, err
-			}
+		render := render.New(render.Options{
+			Directory:  "templates",
+			Extensions: []string{".tmpl"},
+			Layout:     "layout",
+		})
 
-			log.Printf("[DEBUG] Successfully validated token '%s' (owner: '%s')", token, profile.Email)
-			return profile, nil
+		authenticateController := controllers.NewAuthenticateController(client.GetProfile)
+		rootController := controllers.NewRootController(render, c.String(FlagAuth0Domain), c.String(FlagAuth0ClientID))
+		tokenController := controllers.NewTokenController(render, client.GetProfile)
+
+		rm := router.RouteMap{
+			"/": router.MethodHandlers{
+				http.MethodGet: rye.ToHandler(rootController.Root),
+			},
+			"/authenticate": router.MethodHandlers{
+				http.MethodPost: rye.ToHandler(authenticateController.Authenticate),
+			},
+			"/token": router.MethodHandlers{
+				http.MethodPost: rye.ToHandler(tokenController.HandleCallback),
+			},
 		}
 
-		authenticateController := controllers.NewAuthenticateController(getProfile)
-		routes = append(routes, authenticateController.Routes()...)
-
-		rootController := controllers.NewRootController(c.String(FlagAuth0Domain), c.String(FlagAuth0ClientID))
-		routes = append(routes, rootController.Routes()...)
-
-		tokenController := controllers.NewTokenController(getProfile)
-		routes = append(routes, tokenController.Routes()...)
-		routes = fireball.Decorate(routes, fireball.LogDecorator())
-
-		app := fireball.NewApp(routes)
-		http.Handle("/", app)
+		// todo: log middleware
+		r := router.NewRouter(rm.StringMatch())
+		http.Handle("/", r)
 
 		http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "static/favicon.png")
