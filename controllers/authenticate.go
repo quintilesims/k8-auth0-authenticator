@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/quintilesims/auth0"
-	"github.com/zpatrick/fireball"
-	authentication "k8s.io/api/authentication/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/zpatrick/rye"
+	auth "k8s.io/api/authentication/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type AuthenticateController struct {
@@ -21,55 +21,44 @@ func NewAuthenticateController(getProfile func(string) (*auth0.Profile, error)) 
 	}
 }
 
-func (a *AuthenticateController) Routes() []*fireball.Route {
-	return []*fireball.Route{
-		{
-			Path: "/authenticate",
-			Handlers: fireball.Handlers{
-				"POST": a.authenticate,
-			},
-		},
-	}
-}
-
-func (a *AuthenticateController) authenticate(c *fireball.Context) (fireball.Response, error) {
-	defer c.Request.Body.Close()
-
-	var tr authentication.TokenReview
-	if err := json.NewDecoder(c.Request.Body).Decode(&tr); err != nil {
+func (a *AuthenticateController) Authenticate(r *http.Request) http.Handler {
+	defer r.Body.Close()
+	var tr auth.TokenReview
+	if err := json.NewDecoder(r.Body).Decode(&tr); err != nil {
 		log.Printf("[ERROR] Failed to decode TokenReview: %v", err)
-		return newTokenReviewResponse(authentication.TokenReviewStatus{Error: err.Error()})
+		return tokenReview(auth.TokenReviewStatus{Error: err.Error()})
 	}
 
 	profile, err := a.getProfile(tr.Spec.Token)
 	if err != nil {
-		return newTokenReviewResponse(authentication.TokenReviewStatus{Error: err.Error()})
+		log.Printf("[ERROR] Failed to get profile for token '%s': %v", tr.Spec.Token, err)
+		return tokenReview(auth.TokenReviewStatus{Error: err.Error()})
 	}
 
-	status := authentication.TokenReviewStatus{
+	trs := auth.TokenReviewStatus{
 		Authenticated: true,
-		User: authentication.UserInfo{
+		User: auth.UserInfo{
 			UID:      profile.Email,
 			Username: profile.Email,
 		},
 	}
 
-	return newTokenReviewResponse(status)
+	return tokenReview(trs)
 }
 
-func newTokenReviewResponse(status authentication.TokenReviewStatus) (fireball.Response, error) {
-	statusCode := http.StatusUnauthorized
-	if status.Authenticated {
-		statusCode = http.StatusOK
+func tokenReview(trs auth.TokenReviewStatus) http.Handler {
+	status := http.StatusUnauthorized
+	if trs.Authenticated {
+		status = http.StatusOK
 	}
 
-	resp := authentication.TokenReview{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "authentication.k8s.io/v1beta1",
+	tr := auth.TokenReview{
+		TypeMeta: meta.TypeMeta{
+			APIVersion: "auth.k8s.io/v1beta1",
 			Kind:       "TokenReview",
 		},
-		Status: status,
+		Status: trs,
 	}
 
-	return fireball.NewJSONResponse(statusCode, resp)
+	return rye.JSON(status, tr)
 }
