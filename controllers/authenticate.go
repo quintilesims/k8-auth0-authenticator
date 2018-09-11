@@ -54,7 +54,7 @@ func tokenReview(trs auth.TokenReviewStatus) http.Handler {
 
 	tr := auth.TokenReview{
 		TypeMeta: meta.TypeMeta{
-			APIVersion: "auth.k8s.io/v1beta1",
+			APIVersion: "authentication.k8s.io/v1beta1",
 			Kind:       "TokenReview",
 		},
 		Status: trs,
