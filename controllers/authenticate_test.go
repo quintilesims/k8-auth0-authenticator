@@ -88,7 +88,7 @@ func TestAuthenticateError_badRequestBody(t *testing.T) {
 	assert.NotNil(t, result.Status.Error)
 }
 
-func TestAuthenticateError_badToken(t *testing.T) {
+func TestAuthenticateError_getProfileError(t *testing.T) {
 	getProfile := func(token string) (*auth0.Profile, error) {
 		return nil, errors.New("bad token")
 	}
