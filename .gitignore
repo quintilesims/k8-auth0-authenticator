@@ -1,4 +1,3 @@
-k8-auth0-authenticator
 .terraform
 .terraform/*
 terraform.tf*
