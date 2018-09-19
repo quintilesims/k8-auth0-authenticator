@@ -11,7 +11,7 @@ Setup environment variables relating to your Auth0 account (they will be used la
 $ export AUTH0_DOMAIN=https://imshealth.auth0.com/
 $ export AUTH0_CLIENT_ID=<client id here>
 $ export AUTH0_CLIENT_SECRET=<client secret here>
-$ export AUTH0_EMAIL=<email used for Auth0 login here>
+$ export AUTH0_EMAIL=<your email used for Auth0 login here>
 ```
 
 ## Step 2: Start Minikube Cluster
@@ -64,7 +64,7 @@ User "<your Auth0 login email here>" set.
 Finally, we need to populate the `id-token` and `refresh-token` values for your user. 
 Download and execute [kubelogin](https://github.com/int128/kubelogin).
 This tool will open up a web browser, prompt you to login to Auth0, and populate your `Kubeconfig` with the required `id-token` and `refresh-token` values.
-Make sure to wait until the progam finishes executing (it may take about a minute).
+Make sure to wait until the progam finishes executing (it may take a couple minutes).
 
 ```console
 $ kubelogin
@@ -132,14 +132,32 @@ subjects:
 Run the following to grant your user admin permissions:
 ```console
 $ kubectl --user=minikube apply -f cluster_admin.yaml
-TODO: show output
+clusterrolebinding.rbac.authorization.k8s.io/oidc-admin-binding configured
 ```
 
-You should now be able to use `kubectl` with your user:
+You should now be able to use `kubectl` with your Auth0 user:
 ```console
 $ kubectl get nodes
 NAME       STATUS    ROLES     AGE       VERSION
 minikube   Ready     <none>    1h        v1.9.4
 ```
 
-TODO: If you get XXXXX, error message, try deleting `id-token`. 
+## Troubleshooting
+If you run into the following error:
+```console
+$ kubectl get nodes
+No resources found.
+error: You must be logged in to the server (Unauthorized)
+```
+It's probably a bug with `kubelogin` grabbing an invalid `id-token`. 
+To fix this, remove the `id-token` line from your Kubeconfig file.
+Kubectl will use the `refresh-token` to grab a new, valid token. 
+```console
+$ kubectl config set-credentials $AUTH0_EMAIL \
+--auth-provider-arg id-token=""
+User "<your Auth0 login email here>" set.
+
+$ kubectl get nodes
+NAME       STATUS    ROLES     AGE       VERSION
+minikube   Ready     <none>    1h        v1.9.4
+```
